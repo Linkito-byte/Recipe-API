@@ -1,0 +1,48 @@
+{
+  "name": "recipe-api",
+  "version": "1.0.0",
+  "description": "Backend API for managing and sharing recipes - ITIS 4166-051 Group 17",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file=.env --watch src/server.js",
+    "start": "node src/server.js",
+    "migrate:dev": "npx prisma migrate dev",
+    "migrate:deploy": "npx prisma migrate deploy",
+    "migrate:reset": "npx prisma migrate reset",
+    "prisma:generate": "npx prisma generate",
+    "seed": "node prisma/seed.js"
+  },
+  "keywords": [
+    "node",
+    "express",
+    "prisma",
+    "postgres",
+    "api",
+    "recipes",
+    "jwt",
+    "authentication"
+  ],
+  "author": "Group 17",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.18.0",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "express-validator": "^7.2.1",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.1",
+    "swagger-ui-express": "^5.0.1",
+    "yamljs": "^0.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@redocly/cli": "^2.8.0",
+    "eslint": "^9.36.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.4.0",
+    "prettier": "^3.6.2",
+    "prisma": "^6.18.0"
+  }
+}
