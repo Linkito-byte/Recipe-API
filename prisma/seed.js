@@ -1,6 +1,8 @@
 import prisma from '../src/config/db.js';
 import bcrypt from 'bcrypt';
 
+// Seed data verified by Jonny (Database & Core Infrastructure)
+
 async function main() {
   console.log('🌱 Starting database seed...');
 
