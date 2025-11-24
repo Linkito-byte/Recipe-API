@@ -1,0 +1,112 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============
+// User Model
+// ============
+model User {
+  userId    Int      @id @default(autoincrement()) @map("user_id")
+  username  String   @unique
+  email     String   @unique
+  password  String   // Hashed with bcrypt
+  role      Role     @default(USER)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  recipes   Recipe[]
+  
+  @@map("users")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+// ==============
+// Recipe Model
+// ==============
+model Recipe {
+  recipeId    Int      @id @default(autoincrement()) @map("recipe_id")
+  title       String
+  description String?
+  prepTime    Int      @map("prep_time")  // in minutes
+  cookTime    Int      @map("cook_time")  // in minutes
+  servings    Int
+  userId      Int      @map("user_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  user               User               @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  instructions       Instruction[]
+  recipeIngredients  RecipeIngredient[]
+  
+  @@index([userId])
+  @@map("recipes")
+}
+
+// ==================
+// Ingredient Model
+// ==================
+model Ingredient {
+  ingredientId      Int                @id @default(autoincrement()) @map("ingredient_id")
+  name              String             @unique
+  unit              String
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  
+  recipeIngredients RecipeIngredient[]
+  
+  @@map("ingredients")
+}
+
+// ===================
+// Instruction Model
+// ===================
+model Instruction {
+  instructionId Int      @id @default(autoincrement()) @map("instruction_id")
+  recipeId      Int      @map("recipe_id")
+  stepNumber    Int      @map("step_number")
+  description   String   @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  
+  recipe Recipe @relation(fields: [recipeId], references: [recipeId], onDelete: Cascade)
+  
+  @@unique([recipeId, stepNumber])
+  @@index([recipeId])
+  @@map("instructions")
+}
+
+// ===========================
+// RecipeIngredient Junction
+// ===========================
+model RecipeIngredient {
+  recipeIngredientId Int        @id @default(autoincrement()) @map("recipe_ingredient_id")
+  recipeId           Int        @map("recipe_id")
+  ingredientId       Int        @map("ingredient_id")
+  quantity           Float
+  notes              String?
+  createdAt          DateTime   @default(now()) @map("created_at")
+  updatedAt          DateTime   @updatedAt @map("updated_at")
+  
+  recipe     Recipe     @relation(fields: [recipeId], references: [recipeId], onDelete: Cascade)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [ingredientId], onDelete: Cascade)
+  
+  @@unique([recipeId, ingredientId])
+  @@index([recipeId])
+  @@index([ingredientId])
+  @@map("recipe_ingredients")
+}

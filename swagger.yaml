@@ -1,0 +1,744 @@
+openapi: 3.0.0
+info:
+  title: Recipe API
+  description: Backend API for managing and sharing recipes - ITIS 4166-051 Group 17
+  version: 1.0.0
+  contact:
+    name: Group 17
+servers:
+  - url: http://localhost:1234/api
+    description: Local server (primary)
+  - url: http://localhost:3000/api
+    description: Development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  schemas:
+    User:
+      type: object
+      properties:
+        userId:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [USER, ADMIN]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    
+    Recipe:
+      type: object
+      properties:
+        recipeId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        prepTime:
+          type: integer
+        cookTime:
+          type: integer
+        servings:
+          type: integer
+        userId:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    
+    Ingredient:
+      type: object
+      properties:
+        ingredientId:
+          type: integer
+        name:
+          type: string
+        unit:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    
+    Instruction:
+      type: object
+      properties:
+        instructionId:
+          type: integer
+        recipeId:
+          type: integer
+        stepNumber:
+          type: integer
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: string
+
+paths:
+  # Authentication Endpoints
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 30
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+        '400':
+          description: Validation error
+        '409':
+          description: Email or username already exists
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+        '401':
+          description: Invalid credentials
+
+  # User Endpoints
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Get all users (Admin only)
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Admin only
+
+  /users/me:
+    get:
+      tags:
+        - Users
+      summary: Get current user profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+    
+    put:
+      tags:
+        - Users
+      summary: Update current user profile
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated
+        '401':
+          description: Unauthorized
+
+  /users/me/recipes:
+    get:
+      tags:
+        - Users
+      summary: Get current user's recipes
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of user's recipes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recipe'
+
+  /users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get user by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '403':
+          description: Forbidden
+        '404':
+          description: User not found
+    
+    put:
+      tags:
+        - Users
+      summary: Update user by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: User updated
+        '403':
+          description: Forbidden
+        '404':
+          description: User not found
+    
+    delete:
+      tags:
+        - Users
+      summary: Delete user by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: User deleted
+        '403':
+          description: Forbidden
+        '404':
+          description: User not found
+
+  # Recipe Endpoints
+  /recipes:
+    get:
+      tags:
+        - Recipes
+      summary: Get all recipes
+      responses:
+        '200':
+          description: List of recipes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recipe'
+    
+    post:
+      tags:
+        - Recipes
+      summary: Create a new recipe
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - prepTime
+                - cookTime
+                - servings
+                - userId
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                prepTime:
+                  type: integer
+                cookTime:
+                  type: integer
+                servings:
+                  type: integer
+                userId:
+                  type: integer
+      responses:
+        '201':
+          description: Recipe created
+        '400':
+          description: Validation error
+        '401':
+          description: Unauthorized
+
+  /recipes/{id}:
+    get:
+      tags:
+        - Recipes
+      summary: Get recipe by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Recipe found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '404':
+          description: Recipe not found
+    
+    put:
+      tags:
+        - Recipes
+      summary: Update recipe by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                prepTime:
+                  type: integer
+                cookTime:
+                  type: integer
+                servings:
+                  type: integer
+      responses:
+        '200':
+          description: Recipe updated
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Recipe not found
+    
+    delete:
+      tags:
+        - Recipes
+      summary: Delete recipe by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Recipe deleted
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Recipe not found
+
+  # Ingredient Endpoints
+  /ingredients:
+    get:
+      tags:
+        - Ingredients
+      summary: Get all ingredients
+      responses:
+        '200':
+          description: List of ingredients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ingredient'
+    
+    post:
+      tags:
+        - Ingredients
+      summary: Create a new ingredient (Admin only)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - unit
+              properties:
+                name:
+                  type: string
+                unit:
+                  type: string
+      responses:
+        '201':
+          description: Ingredient created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Admin only
+        '409':
+          description: Ingredient already exists
+
+  /ingredients/{id}:
+    get:
+      tags:
+        - Ingredients
+      summary: Get ingredient by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ingredient found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+        '404':
+          description: Ingredient not found
+    
+    put:
+      tags:
+        - Ingredients
+      summary: Update ingredient by ID (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                unit:
+                  type: string
+      responses:
+        '200':
+          description: Ingredient updated
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Admin only
+        '404':
+          description: Ingredient not found
+    
+    delete:
+      tags:
+        - Ingredients
+      summary: Delete ingredient by ID (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Ingredient deleted
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Admin only
+        '404':
+          description: Ingredient not found
+
+  # Instruction Endpoints
+  /recipes/{id}/instructions:
+    get:
+      tags:
+        - Instructions
+      summary: Get all instructions for a recipe
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of instructions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Instruction'
+        '404':
+          description: Recipe not found
+    
+    post:
+      tags:
+        - Instructions
+      summary: Add instruction to a recipe
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - stepNumber
+                - description
+              properties:
+                stepNumber:
+                  type: integer
+                description:
+                  type: string
+      responses:
+        '201':
+          description: Instruction created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Recipe not found
+        '409':
+          description: Step number already exists
+
+  /instructions/{id}:
+    get:
+      tags:
+        - Instructions
+      summary: Get instruction by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Instruction found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Instruction'
+        '404':
+          description: Instruction not found
+    
+    put:
+      tags:
+        - Instructions
+      summary: Update instruction by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stepNumber:
+                  type: integer
+                description:
+                  type: string
+      responses:
+        '200':
+          description: Instruction updated
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Instruction not found
+    
+    delete:
+      tags:
+        - Instructions
+      summary: Delete instruction by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Instruction deleted
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Instruction not found
