@@ -143,10 +143,10 @@ Render detects the push and redeploys automatically.
 ## Next Steps
 
 After deployment is successful:
-1. ✅ Test all endpoints using Swagger UI
-2. ✅ Set up Postman collection pointing to your live URL
-3. ✅ Update README with deployed URL
-4. ✅ Share deployed URL with your team
+1. Test all endpoints using Swagger UI
+2. Set up Postman collection pointing to your live URL
+3. Update README with deployed URL
+4. Share deployed URL with your team
 
 ## Support
 
