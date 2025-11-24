@@ -8,7 +8,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 // User model - Lincoln: Authentication and User Management
@@ -16,7 +16,7 @@ model User {
   userId    Int      @id @default(autoincrement()) @map("user_id")
   username  String   @unique
   email     String   @unique
-  password  String   // Will be hashed with bcrypt
+  password  String
   role      Role     @default(USER)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -36,8 +36,8 @@ model Recipe {
   recipeId    Int       @id @default(autoincrement()) @map("recipe_id")
   title       String
   description String?
-  prepTime    Int       @map("prep_time") // in minutes
-  cookTime    Int       @map("cook_time") // in minutes
+  prepTime    Int       @map("prep_time")
+  cookTime    Int       @map("cook_time")
   servings    Int
   userId      Int       @map("user_id")
   createdAt   DateTime  @default(now()) @map("created_at")
@@ -54,7 +54,7 @@ model Recipe {
 model Ingredient {
   ingredientId      Int                @id @default(autoincrement()) @map("ingredient_id")
   name              String             @unique
-  unit              String             // oz, cup, tbsp, tsp, etc.
+  unit              String
   createdAt         DateTime           @default(now()) @map("created_at")
   updatedAt         DateTime           @updatedAt @map("updated_at")
   
@@ -74,24 +74,23 @@ model Instruction {
   
   recipe Recipe @relation(fields: [recipeId], references: [recipeId], onDelete: Cascade)
   
-  @@unique([recipeId, stepNumber]) // Ensure unique step numbers per recipe
+  @@unique([recipeId, stepNumber])
   @@map("instructions")
 }
 
-// Junction table for Many-to-Many relationship between Recipe and Ingredient
-// Giani: Recipe and Ingredient Management
+// Junction table - Giani: Recipe and Ingredient Management
 model RecipeIngredient {
   recipeIngredientId Int        @id @default(autoincrement()) @map("recipe_ingredient_id")
   recipeId           Int        @map("recipe_id")
   ingredientId       Int        @map("ingredient_id")
   quantity           Float
-  notes              String?    // Optional: e.g., "chopped", "diced"
+  notes              String?
   createdAt          DateTime   @default(now()) @map("created_at")
   updatedAt          DateTime   @updatedAt @map("updated_at")
   
   recipe     Recipe     @relation(fields: [recipeId], references: [recipeId], onDelete: Cascade)
   ingredient Ingredient @relation(fields: [ingredientId], references: [ingredientId], onDelete: Cascade)
   
-  @@unique([recipeId, ingredientId]) // Prevent duplicate ingredient entries per recipe
+  @@unique([recipeId, ingredientId])
   @@map("recipe_ingredients")
 }

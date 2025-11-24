@@ -4,14 +4,7 @@
 import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
-import swaggerUi from 'swagger-ui-express';
-import YAML from 'yamljs';
-
-// Import routes (uncomment as they are implemented)
-// import authRoutes from './routes/authRoutes.js';
-// import recipeRoutes from './routes/recipeRoutes.js';
-// import ingredientRoutes from './routes/ingredientRoutes.js';
-// import instructionRoutes from './routes/instructionRoutes.js';
+import recipeRoutes from './routes/recipeRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,11 +15,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('tiny'));
 
-// Swagger API documentation
-const specs = YAML.load('./public/bundled.yaml');
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
-
-// Basic health check
+// Health check
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'ok',
@@ -42,20 +31,14 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     team: 'Group 17',
     endpoints: {
-      auth: '/api/auth',
       recipes: '/api/recipes',
-      ingredients: '/api/ingredients',
-      instructions: '/api/instructions',
-      documentation: '/api-docs'
+      health: '/health'
     }
   });
 });
 
-// API Routes (uncomment as routes are implemented)
-// app.use('/api/auth', authRoutes);
-// app.use('/api/recipes', recipeRoutes);
-// app.use('/api/ingredients', ingredientRoutes);
-// app.use('/api/instructions', instructionRoutes);
+// API Routes
+app.use('/api/recipes', recipeRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -74,10 +57,9 @@ app.use((err, req, res, next) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Recipe API server is running on port ${PORT}`);
-  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 URL: http://localhost:${PORT}`);
-  console.log(`📚 API Docs: http://localhost:${PORT}/api-docs`);
+  console.log(`Recipe API server is running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`URL: http://localhost:${PORT}`);
 });
 
 export default app;

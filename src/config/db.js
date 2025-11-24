@@ -1,6 +1,5 @@
 // src/config/db.js
 // Database configuration and Prisma client initialization
-// Jonny Pretell - Database and Core Infrastructure
 
 import { PrismaClient } from '../generated/prisma/index.js';
 
