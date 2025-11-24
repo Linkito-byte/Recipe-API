@@ -2,6 +2,8 @@ import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
 import recipeRoutes from './routes/recipeRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,9 +14,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('tiny'));
 
-// Routes
-app.use('/api/recipes', recipeRoutes);
-
 // Health check
 app.get('/health', (req, res) => {
   res.status(200).json({ 
@@ -22,6 +21,11 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// API Routes
+app.use('/api/recipes', recipeRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 
 // 404 handler
 app.use((req, res) => {
