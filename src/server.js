@@ -4,6 +4,7 @@ import cors from 'cors';
 import recipeRoutes from './routes/recipeRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import ingredientRoutes from './routes/ingredientRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,6 +27,7 @@ app.get('/health', (req, res) => {
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/ingredients', ingredientRoutes);
 
 // 404 handler
 app.use((req, res) => {
