@@ -212,14 +212,13 @@ paths:
           application/json:
             schema:
               type: object
-              required: [title, prepTime, cookTime, servings, userId]
+              required: [title, prepTime, cookTime, servings]
               properties:
                 title: { type: string, minLength: 3, maxLength: 100 }
                 description: { type: string, maxLength: 500 }
                 prepTime: { type: integer, minimum: 0 }
                 cookTime: { type: integer, minimum: 0 }
                 servings: { type: integer, minimum: 1 }
-                userId: { type: integer }
       responses:
         '201': { $ref: '#/components/responses/Success' }
         '401': { $ref: '#/components/responses/Unauthorized' }

@@ -30,10 +30,6 @@ export const validateRecipe = [
     .isInt({ min: 1 })
     .withMessage('Servings must be at least 1'),
 
-  body('userId')
-    .isInt()
-    .withMessage('User ID must be a valid integer'),
-
   checkValidationResults,
 ];
 

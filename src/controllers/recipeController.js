@@ -39,7 +39,13 @@ export async function getRecipeByIdHandler(req, res, next) {
 
 export async function createRecipeHandler(req, res, next) {
   try {
-    const newRecipe = await recipeService.createNewRecipe(req.body);
+    // Extract userId from authenticated user
+    const recipeData = {
+      ...req.body,
+      userId: req.user.userId
+    };
+    
+    const newRecipe = await recipeService.createNewRecipe(recipeData);
     res.status(201).json(newRecipe);
   } catch (error) {
     next(error);
