@@ -36,7 +36,7 @@ async function main() {
     }
   });
 
-  console.log('👤 Created 2 users (1 admin, 1 regular)');
+  console.log('Created 2 users (1 admin, 1 regular)');
 
   // Create Ingredients
   const ingredients = [
@@ -196,7 +196,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error('❌ Error seeding database:', e);
+    console.error('Error seeding database:', e);
     process.exit(1);
   })
   .finally(async () => {

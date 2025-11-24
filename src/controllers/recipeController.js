@@ -57,6 +57,17 @@ export async function updateRecipeHandler(req, res, next) {
       throw error;
     }
 
+    // Get recipe to check ownership
+    const recipe = await recipeService.getRecipeById(id);
+    
+    // Check ownership: user must own the recipe or be admin
+    if (req.user.role !== 'ADMIN' && recipe.userId !== req.user.userId) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'You can only update your own recipes'
+      });
+    }
+
     const updatedRecipe = await recipeService.updateRecipeById(id, req.body);
     res.status(200).json(updatedRecipe);
   } catch (error) {
@@ -80,6 +91,17 @@ export async function deleteRecipeHandler(req, res, next) {
       error.status = 400;
       error.details = ['ID must be a valid number'];
       throw error;
+    }
+
+    // Get recipe to check ownership
+    const recipe = await recipeService.getRecipeById(id);
+    
+    // Check ownership: user must own the recipe or be admin
+    if (req.user.role !== 'ADMIN' && recipe.userId !== req.user.userId) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'You can only delete your own recipes'
+      });
     }
 
     await recipeService.deleteRecipeById(id);

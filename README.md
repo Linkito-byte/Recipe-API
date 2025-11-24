@@ -160,7 +160,7 @@ This API uses JWT (JSON Web Tokens) for authentication.
 - Password: `password123`
 
 **Regular User:**
-- Email: `john@example.com`
+- Email: `user@recipeapi.com`
 - Password: `password123`
 
 ## Authorization Rules
