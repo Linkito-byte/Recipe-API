@@ -1,0 +1,394 @@
+openapi: 3.0.0
+info:
+  title: Recipe API
+  description: Backend API for managing and sharing recipes - ITIS 4166-051 Group 17
+  version: 1.0.0
+  contact:
+    name: Group 17
+servers:
+  - url: https://recipe-api-qkaa.onrender.com/api
+    description: Production server (Render)
+  - url: http://localhost:1234/api
+    description: Local server (primary)
+  - url: http://localhost:3000/api
+    description: Development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+  
+  responses:
+    Unauthorized:
+      description: Unauthorized - Authentication required
+    Forbidden:
+      description: Forbidden - Insufficient permissions
+    NotFound:
+      description: Resource not found
+    ValidationError:
+      description: Validation failed
+    Success:
+      description: Operation successful
+    NoContent:
+      description: Successfully deleted
+  
+  schemas:
+    User:
+      type: object
+      properties:
+        userId: { type: integer }
+        username: { type: string }
+        email: { type: string }
+        role: { type: string, enum: [USER, ADMIN] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    
+    Recipe:
+      type: object
+      properties:
+        recipeId: { type: integer }
+        title: { type: string }
+        description: { type: string }
+        prepTime: { type: integer }
+        cookTime: { type: integer }
+        servings: { type: integer }
+        userId: { type: integer }
+    
+    Ingredient:
+      type: object
+      properties:
+        ingredientId: { type: integer }
+        name: { type: string }
+        unit: { type: string }
+    
+    Instruction:
+      type: object
+      properties:
+        instructionId: { type: integer }
+        recipeId: { type: integer }
+        stepNumber: { type: integer }
+        description: { type: string }
+
+paths:
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, email, password]
+              properties:
+                username: { type: string, minLength: 3, maxLength: 30 }
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+      responses:
+        '201': { $ref: '#/components/responses/Success' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /users:
+    get:
+      tags: [Users]
+      summary: Get all users (Admin only)
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Get current user profile
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    put:
+      tags: [Users]
+      summary: Update current user profile
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string, minLength: 3, maxLength: 30 }
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /users/me/recipes:
+    get:
+      tags: [Users]
+      summary: Get current user's recipes
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+
+  /users/{id}:
+    get:
+      tags: [Users]
+      summary: Get user by ID
+      security: [{ BearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/IdParam' }]
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Users]
+      summary: Update user by ID
+      security: [{ BearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/IdParam' }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string, minLength: 3, maxLength: 30 }
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Users]
+      summary: Delete user by ID
+      security: [{ BearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/IdParam' }]
+      responses:
+        '204': { $ref: '#/components/responses/NoContent' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /recipes:
+    get:
+      tags: [Recipes]
+      summary: Get all recipes
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+    post:
+      tags: [Recipes]
+      summary: Create a new recipe
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, prepTime, cookTime, servings]
+              properties:
+                title: { type: string, minLength: 3, maxLength: 100 }
+                description: { type: string, maxLength: 500 }
+                prepTime: { type: integer, minimum: 0 }
+                cookTime: { type: integer, minimum: 0 }
+                servings: { type: integer, minimum: 1 }
+      responses:
+        '201': { $ref: '#/components/responses/Success' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /recipes/{id}:
+    get:
+      tags: [Recipes]
+      summary: Get recipe by ID
+      parameters: [{ $ref: '#/components/parameters/IdParam' }]
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Recipes]
+      summary: Update recipe by ID
+      security: [{ BearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/IdParam' }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string, minLength: 3, maxLength: 100 }
+                description: { type: string, maxLength: 500 }
+                prepTime: { type: integer, minimum: 0 }
+                cookTime: { type: integer, minimum: 0 }
+                servings: { type: integer, minimum: 1 }
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Recipes]
+      summary: Delete recipe by ID
+      security: [{ BearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/IdParam' }]
+      responses:
+        '204': { $ref: '#/components/responses/NoContent' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /ingredients:
+    get:
+      tags: [Ingredients]
+      summary: Get all ingredients
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+    post:
+      tags: [Ingredients]
+      summary: Create ingredient (Admin only)
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, unit]
+              properties:
+                name: { type: string, minLength: 2, maxLength: 100 }
+                unit: { type: string, minLength: 1, maxLength: 20 }
+      responses:
+        '201': { $ref: '#/components/responses/Success' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /ingredients/{id}:
+    get:
+      tags: [Ingredients]
+      summary: Get ingredient by ID
+      parameters: [{ $ref: '#/components/parameters/IdParam' }]
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Ingredients]
+      summary: Update ingredient (Admin only)
+      security: [{ BearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/IdParam' }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, minLength: 2, maxLength: 100 }
+                unit: { type: string, minLength: 1, maxLength: 20 }
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Ingredients]
+      summary: Delete ingredient (Admin only)
+      security: [{ BearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/IdParam' }]
+      responses:
+        '204': { $ref: '#/components/responses/NoContent' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /recipes/{id}/instructions:
+    get:
+      tags: [Instructions]
+      summary: Get all instructions for a recipe
+      parameters: [{ $ref: '#/components/parameters/IdParam' }]
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    post:
+      tags: [Instructions]
+      summary: Add instruction to a recipe
+      security: [{ BearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/IdParam' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [stepNumber, description]
+              properties:
+                stepNumber: { type: integer, minimum: 1 }
+                description: { type: string, minLength: 5, maxLength: 1000 }
+      responses:
+        '201': { $ref: '#/components/responses/Success' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /instructions/{id}:
+    get:
+      tags: [Instructions]
+      summary: Get instruction by ID
+      parameters: [{ $ref: '#/components/parameters/IdParam' }]
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Instructions]
+      summary: Update instruction by ID
+      security: [{ BearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/IdParam' }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stepNumber: { type: integer, minimum: 1 }
+                description: { type: string, minLength: 5, maxLength: 1000 }
+      responses:
+        '200': { $ref: '#/components/responses/Success' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Instructions]
+      summary: Delete instruction by ID
+      security: [{ BearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/IdParam' }]
+      responses:
+        '204': { $ref: '#/components/responses/NoContent' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }

@@ -95,7 +95,12 @@ export async function updateUser(userId, updateData) {
  */
 export async function deleteUser(userId) {
   return prisma.user.delete({
-    where: { userId }
+    where: { userId },
+    select: {
+      userId: true,
+      username: true,
+      email: true
+    }
   });
 }
 
@@ -116,6 +121,22 @@ export async function getUserRecipes(userId) {
           stepNumber: 'asc'
         }
       }
+    }
+  });
+}
+
+/**
+ * Get all users (admin only)
+ */
+export async function findAllUsers() {
+  return prisma.user.findMany({
+    select: {
+      userId: true,
+      username: true,
+      email: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true
     }
   });
 }

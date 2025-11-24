@@ -108,3 +108,122 @@ export async function getMyRecipesHandler(req, res, next) {
     next(error);
   }
 }
+
+/**
+ * Get all users (admin only)
+ * GET /api/users
+ * Requires admin authentication
+ */
+export async function getAllUsersHandler(req, res, next) {
+  try {
+    const users = await authService.getAllUsers();
+    res.status(200).json(users);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Get user by ID
+ * GET /api/users/:id
+ * Requires authentication (admin or self)
+ */
+export async function getUserByIdHandler(req, res, next) {
+  try {
+    const userId = parseInt(req.params.id);
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ 
+        error: 'Validation failed',
+        details: ['User ID must be a valid number']
+      });
+    }
+
+    // Check if user is admin or accessing their own profile
+    if (req.user.role !== 'ADMIN' && req.user.userId !== userId) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'You can only view your own profile'
+      });
+    }
+
+    const user = await authService.getUserById(userId);
+    res.status(200).json(user);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Update user by ID
+ * PUT /api/users/:id
+ * Requires authentication (admin or self)
+ */
+export async function updateUserByIdHandler(req, res, next) {
+  try {
+    const userId = parseInt(req.params.id);
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ 
+        error: 'Validation failed',
+        details: ['User ID must be a valid number']
+      });
+    }
+
+    // Check if user is admin or updating their own profile
+    if (req.user.role !== 'ADMIN' && req.user.userId !== userId) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'You can only update your own profile'
+      });
+    }
+
+    const { username, email, password } = req.body;
+
+    // Build update object with only provided fields
+    const updateData = {};
+    if (username) updateData.username = username;
+    if (email) updateData.email = email;
+    if (password) updateData.password = password;
+
+    const updatedUser = await authService.updateUserById(userId, updateData);
+
+    res.status(200).json({
+      message: 'User updated successfully',
+      user: updatedUser
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Delete user by ID
+ * DELETE /api/users/:id
+ * Requires authentication (admin or self)
+ */
+export async function deleteUserByIdHandler(req, res, next) {
+  try {
+    const userId = parseInt(req.params.id);
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ 
+        error: 'Validation failed',
+        details: ['User ID must be a valid number']
+      });
+    }
+
+    // Check if user is admin or deleting their own account
+    if (req.user.role !== 'ADMIN' && req.user.userId !== userId) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'You can only delete your own account'
+      });
+    }
+
+    await authService.deleteUserById(userId);
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+}

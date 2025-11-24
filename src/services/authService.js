@@ -145,6 +145,84 @@ export async function getUserRecipes(userId) {
 }
 
 /**
+ * Get all users (admin only)
+ */
+export async function getAllUsers() {
+  return await userRepo.findAllUsers();
+}
+
+/**
+ * Get user by ID (admin or self)
+ */
+export async function getUserById(userId) {
+  const user = await userRepo.findUserById(userId);
+  
+  if (!user) {
+    const error = new Error('User not found');
+    error.status = 404;
+    throw error;
+  }
+
+  return user;
+}
+
+/**
+ * Update user by ID (admin or self)
+ */
+export async function updateUserById(userId, updateData) {
+  // Check if user exists
+  const user = await userRepo.findUserById(userId);
+  if (!user) {
+    const error = new Error('User not found');
+    error.status = 404;
+    throw error;
+  }
+
+  // If email is being updated, check if it's already taken
+  if (updateData.email && updateData.email !== user.email) {
+    const existingEmail = await userRepo.findUserByEmail(updateData.email);
+    if (existingEmail) {
+      const error = new Error('Email already in use');
+      error.status = 409;
+      throw error;
+    }
+  }
+
+  // If username is being updated, check if it's already taken
+  if (updateData.username && updateData.username !== user.username) {
+    const existingUsername = await userRepo.findUserByUsername(updateData.username);
+    if (existingUsername) {
+      const error = new Error('Username already taken');
+      error.status = 409;
+      throw error;
+    }
+  }
+
+  // If password is being updated, hash it
+  if (updateData.password) {
+    updateData.password = await bcrypt.hash(updateData.password, 10);
+  }
+
+  // Update user
+  return await userRepo.updateUser(userId, updateData);
+}
+
+/**
+ * Delete user by ID (admin or self)
+ */
+export async function deleteUserById(userId) {
+  // Check if user exists
+  const user = await userRepo.findUserById(userId);
+  if (!user) {
+    const error = new Error('User not found');
+    error.status = 404;
+    throw error;
+  }
+
+  return await userRepo.deleteUser(userId);
+}
+
+/**
  * Generate JWT token
  */
 function generateToken(user) {

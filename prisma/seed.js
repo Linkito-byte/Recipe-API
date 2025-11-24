@@ -2,7 +2,7 @@ import prisma from '../src/config/db.js';
 import bcrypt from 'bcrypt';
 
 async function main() {
-  console.log('🌱 Starting database seed...');
+  console.log('Starting database seed...');
 
   // Clear existing data in correct order
   await prisma.recipeIngredient.deleteMany();
@@ -11,7 +11,7 @@ async function main() {
   await prisma.ingredient.deleteMany();
   await prisma.user.deleteMany();
 
-  console.log('🗑️  Cleared existing data');
+  console.log('Cleared existing data');
 
   // Hash password
   const hashedPassword = await bcrypt.hash('password123', 10);
@@ -36,7 +36,7 @@ async function main() {
     }
   });
 
-  console.log('👤 Created 2 users (1 admin, 1 regular)');
+  console.log('Created 2 users (1 admin, 1 regular)');
 
   // Create Ingredients
   const ingredients = [
@@ -59,7 +59,7 @@ async function main() {
 
   await prisma.ingredient.createMany({ data: ingredients });
 
-  console.log(`🥕 Created ${ingredients.length} ingredients`);
+  console.log(`Created ${ingredients.length} ingredients`);
 
   // Fetch ingredients for use in recipes
   const chickenBreast = await prisma.ingredient.findUnique({ where: { name: 'Chicken Breast' } });
@@ -169,7 +169,7 @@ async function main() {
     }
   });
 
-  console.log('🍳 Created 3 recipes with ingredients and instructions');
+  console.log('Created 3 recipes with ingredients and instructions');
 
   // Get final counts
   const userCount = await prisma.user.count();
@@ -178,14 +178,14 @@ async function main() {
   const instructionCount = await prisma.instruction.count();
   const recipeIngredientCount = await prisma.recipeIngredient.count();
 
-  console.log('\n✅ Database seeding completed successfully!');
-  console.log('\n📊 Summary:');
+  console.log('\nDatabase seeding completed successfully!');
+  console.log('\nSummary:');
   console.log(`   - Users: ${userCount} (1 admin, 1 regular)`);
   console.log(`   - Ingredients: ${ingredientCount}`);
   console.log(`   - Recipes: ${recipeCount}`);
   console.log(`   - Instructions: ${instructionCount}`);
   console.log(`   - Recipe-Ingredient associations: ${recipeIngredientCount}`);
-  console.log('\n🔐 Test Credentials:');
+  console.log('\nTest Credentials:');
   console.log('   Admin:');
   console.log('     Email: admin@recipeapi.com');
   console.log('     Password: password123');
@@ -196,7 +196,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error('❌ Error seeding database:', e);
+    console.error('Error seeding database:', e);
     process.exit(1);
   })
   .finally(async () => {

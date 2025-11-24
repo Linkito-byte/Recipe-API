@@ -160,7 +160,7 @@ This API uses JWT (JSON Web Tokens) for authentication.
 - Password: `password123`
 
 **Regular User:**
-- Email: `john@example.com`
+- Email: `user@recipeapi.com`
 - Password: `password123`
 
 ## Authorization Rules
@@ -229,18 +229,43 @@ Tests cover:
 - Error handling
 - Database constraints
 
-## Deployment
+## API Endpoints Overview
 
-### Deploy to Render
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login user
 
-1. Create account on [Render](https://render.com)
-2. Create new Web Service
-3. Connect your GitHub repository
-4. Configure:
-   - **Build Command:** `npm run build`
-   - **Start Command:** `npm start`
-5. Add environment variables
-6. Deploy!
+### Users
+- `GET /api/users` - Get all users (Admin only)
+- `GET /api/users/me` - Get current user profile
+- `PUT /api/users/me` - Update current user
+- `GET /api/users/me/recipes` - Get current user's recipes
+- `GET /api/users/:id` - Get user by ID
+- `PUT /api/users/:id` - Update user by ID
+- `DELETE /api/users/:id` - Delete user by ID
+
+### Recipes
+- `GET /api/recipes` - Get all recipes (Public)
+- `GET /api/recipes/:id` - Get recipe by ID (Public)
+- `POST /api/recipes` - Create recipe (Auth required)
+- `PUT /api/recipes/:id` - Update recipe (Owner/Admin)
+- `DELETE /api/recipes/:id` - Delete recipe (Owner/Admin)
+
+### Ingredients
+- `GET /api/ingredients` - Get all ingredients (Public)
+- `GET /api/ingredients/:id` - Get ingredient by ID (Public)
+- `POST /api/ingredients` - Create ingredient (Admin only)
+- `PUT /api/ingredients/:id` - Update ingredient (Admin only)
+- `DELETE /api/ingredients/:id` - Delete ingredient (Admin only)
+
+### Instructions
+- `GET /api/recipes/:id/instructions` - Get recipe instructions (Public)
+- `GET /api/instructions/:id` - Get instruction by ID (Public)
+- `POST /api/recipes/:id/instructions` - Add instruction (Owner/Admin)
+- `PUT /api/instructions/:id` - Update instruction (Owner/Admin)
+- `DELETE /api/instructions/:id` - Delete instruction (Owner/Admin)
+
+**Total:** 26 endpoints across 5 resource collections
 
 ## Contributing
 
@@ -255,9 +280,56 @@ Tests cover:
 
 ISC
 
+## Deployment
+
+### Production Environment
+
+The Recipe API is deployed and live on Render!
+
+- **Live API:** https://recipe-api-qkaa.onrender.com
+- **API Documentation:** https://recipe-api-qkaa.onrender.com/api-docs
+- **Health Check:** https://recipe-api-qkaa.onrender.com/health
+
+### Testing the Live API
+
+**Option 1: Swagger UI (Recommended)**
+1. Visit https://recipe-api-qkaa.onrender.com/api-docs
+2. Select "Production server (Render)" from the servers dropdown
+3. Try out any endpoint directly from your browser
+4. For authenticated endpoints, click "Authorize" and paste your JWT token
+
+**Option 2: Postman Collection**
+- Import our Postman collection (link below) for complete API testing
+- Pre-configured with all 26 endpoints organized in 5 folders
+- Automatic token management and environment variables
+
+### Production Test Credentials
+
+**Admin Account:**
+```
+Email: admin@recipeapi.com
+Password: password123
+```
+
+**Regular User Account:**
+```
+Email: user@recipeapi.com
+Password: password123
+```
+
+**Note:** The production database is seeded with sample recipes and ingredients.
+
+### Deployment Notes
+
+- **Platform:** Render (Free Tier)
+- **Cold Start:** First request after 15 minutes of inactivity may take 30-60 seconds
+- **Database:** PostgreSQL (Render managed)
+- **Auto-Deploy:** Pushes to `development` branch trigger automatic redeployment
+- **Environment:** Production environment variables configured in Render dashboard
+
 ## Links
 
-- **GitHub Repository:** [Link to repo]
-- **Deployed API:** [Link to Render deployment]
-- **API Documentation:** [Link to Swagger docs]
-- **Postman Collection:** [Link to Postman workspace]
+- **GitHub Repository:** https://github.com/Linkito-byte/Recipe-API
+- **Live API:** https://recipe-api-qkaa.onrender.com
+- **API Documentation:** https://recipe-api-qkaa.onrender.com/api-docs
+- **Postman Collection:** [Share your Postman workspace link here]

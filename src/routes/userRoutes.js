@@ -6,8 +6,13 @@ import {
   getMeHandler,
   updateMeHandler,
   getMyRecipesHandler,
+  getAllUsersHandler,
+  getUserByIdHandler,
+  updateUserByIdHandler,
+  deleteUserByIdHandler,
 } from '../controllers/authController.js';
 import { authenticate } from '../middleware/auth.js';
+import { requireAdmin } from '../middleware/authorize.js';
 import { validateUpdateProfile } from '../middleware/validateAuth.js';
 
 const router = express.Router();
@@ -32,5 +37,33 @@ router.put('/me', authenticate, validateUpdateProfile, updateMeHandler);
  * @access  Private (requires authentication)
  */
 router.get('/me/recipes', authenticate, getMyRecipesHandler);
+
+/**
+ * @route   GET /api/users
+ * @desc    Get all users
+ * @access  Private (admin only)
+ */
+router.get('/', authenticate, requireAdmin, getAllUsersHandler);
+
+/**
+ * @route   GET /api/users/:id
+ * @desc    Get user by ID
+ * @access  Private (admin or self)
+ */
+router.get('/:id', authenticate, getUserByIdHandler);
+
+/**
+ * @route   PUT /api/users/:id
+ * @desc    Update user by ID
+ * @access  Private (admin or self)
+ */
+router.put('/:id', authenticate, validateUpdateProfile, updateUserByIdHandler);
+
+/**
+ * @route   DELETE /api/users/:id
+ * @desc    Delete user by ID
+ * @access  Private (admin or self)
+ */
+router.delete('/:id', authenticate, deleteUserByIdHandler);
 
 export default router;
